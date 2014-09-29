@@ -22,21 +22,21 @@ It's very simple to add patterns
 
 Example:
 
-```json
+```js
 {
-	/* Add tmLanguage patterns */
+	// Add tmLanguage patterns
 	"patterns": {
 
-		/* Simple rule "regexp": "scope" */
+		// Simple rule "regexp": "scope"
 		"[ \t]+$": "invalid.trail",
 
-		/* Using captures */
+		// Using captures
 		"^ +(\t+)|^\t+( +)": {
-			/* Scope for capture 1 */
+			// Scope for capture 1
 			"1": "invalid.indentation.tab-in-space",
-			/* Scope for capture 2 */
+			// Scope for capture 2
 			"2": "invalid.indentation.space-in-tab"
-			/* Order or holes do not matter */
+			// Order or holes do not matter
 		}
 	}
 }

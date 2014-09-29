@@ -6,6 +6,8 @@ It's more powerful than python regex parsing
 
 Useful for adding `invalid` patterns or highlighting a language that is not supported by sublime text
 
+![Example](/captures/example.png)
+
 _See below for usage_
 
 ### Installation

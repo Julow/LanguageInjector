@@ -25,6 +25,8 @@ class LanguageInjectorListener(sublime_plugin.EventListener):
 
 class LanguageInjectorUpdateCommand(sublime_plugin.TextCommand):
 
+	xml_pos = ""
+
 	def override_syntax(self):
 		self.view.settings().clear_on_change("syntax")
 		if self.view.settings().has("old_syntax"):
@@ -58,15 +60,17 @@ class LanguageInjectorUpdateCommand(sublime_plugin.TextCommand):
 				plist["patterns"].append(p)
 		if not os.path.exists(get_full_path(xml_location)):
 			os.mkdir(get_full_path(xml_location))
-		with open(get_full_path(get_xml_path(self.view.id())), "wb") as f:
+		self.xml_pos = get_xml_path(self.view.id())
+		with open(get_full_path(self.xml_pos), "wb") as f:
 			plistlib.writePlist(plist, f)
-		self.view.set_syntax_file(get_xml_path(self.view.id()))
+		self.view.set_syntax_file(self.xml_pos)
 		self.view.settings().add_on_change("syntax", self.syntax_change)
 
 	def syntax_change(self):
-		if self.view.settings().has("old_syntax"):
-			self.view.settings().erase("old_syntax")
-		self.override_syntax()
+		if self.view.settings().get("syntax") != self.xml_pos:
+			if self.view.settings().has("old_syntax"):
+				self.view.settings().erase("old_syntax")
+			self.override_syntax()
 
 	def run(self, edit, **args):
 		self.override_syntax()

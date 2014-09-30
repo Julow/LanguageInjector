@@ -26,11 +26,10 @@ Example:
 
 ```js
 {
-	// Add tmLanguage patterns
 	"patterns": {
 
 		// Simple rule "regexp": "scope"
-		"[ \t]+$": "invalid.trail",
+		"[ \t]+$": "invalid.trailing",
 
 		// Using captures
 		"^ +(\t+)|^\t+( +)": {
@@ -39,6 +38,21 @@ Example:
 			// Scope for capture 2
 			"2": "invalid.indentation.space-in-tab"
 			// Order or holes do not matter
+		},
+
+		"\\{\\{[^\\}]+\\}\\}": {
+			// Only for html
+			"parent": ["text.html"],
+
+			// Without using capture
+			"scope": "string.regexp.template"
+		},
+
+		// Using custom scope
+		"[a-fA-F0-9]{4} [a-fA-F0-9]{2,4}": {
+			"parent": ["text.plain"],
+
+			"scope": "juloo.hex.group"
 		}
 	}
 }
@@ -47,7 +61,7 @@ Example:
 If a regex syntax is not valid, sublime text doesn't load the syntax and color scheme.
 (White background and black foreground)
 
-_The scope is a "name" of part of text, used for color schemes_
+_The scope is a "description" of part of text, used for color schemes_
 
 ### License
 

@@ -1,6 +1,7 @@
 {
-	// Add tmLanguage patterns
 	"patterns": {
+
+		// Examples
 
 		// Simple rule "regexp": "scope"
 		"[ \t]+$": "invalid.trailing",
@@ -14,12 +15,20 @@
 			// Order or holes do not matter
 		},
 
+		// {{template}}
 		"\\{\\{[^\\}]+\\}\\}": {
 			// Only for html
 			"parent": ["text.html"],
 
 			// Without using capture
 			"scope": "string.regexp.template"
+		},
+
+		// Using custom scope
+		"[a-fA-F0-9]{4} [a-fA-F0-9]{2,4}": {
+			"parent": ["text.plain"],
+
+			"scope": "juloo.hex.group"
 		}
 	}
 }

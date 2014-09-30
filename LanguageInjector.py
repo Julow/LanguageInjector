@@ -1,6 +1,13 @@
 import sublime, sublime_plugin, os, plistlib
 
+global_id = 0
+
 xml_location = "Packages/julooLanguageInjectorCache/"
+
+def get_new_id():
+	global global_id
+	global_id = global_id + 1
+	return global_id
 
 def get_xml_path(id):
 	return xml_location + str(id) +".tmLanguage"
@@ -11,32 +18,29 @@ def get_full_path(p):
 class LanguageInjectorListener(sublime_plugin.EventListener):
 
 	def on_close(self, view):
-		view.settings().clear_on_change("syntax")
-		if view.settings().has("old_syntax"):
-			view.set_syntax_file(view.settings().get("old_syntax"))
-			view.settings().erase("old_syntax")
-		full_path = get_full_path(get_xml_path(view.id()))
-		if os.path.exists(full_path):
-			os.remove(full_path)
+		view.run_command("language_injector_update", {"action": "destroy"})
 
 	def on_load_async(self, view):
-		view.run_command("language_injector_update")
+		view.run_command("language_injector_update", {"action": "update"})
 
 
 class LanguageInjectorUpdateCommand(sublime_plugin.TextCommand):
 
+	xml_id = 0
 	xml_pos = ""
+	last_syntax = ""
 
 	def override_syntax(self):
-		self.view.settings().clear_on_change("syntax")
 		if self.view.settings().has("old_syntax"):
 			syntax_file = self.view.settings().get("old_syntax")
 		else:
 			syntax_file = self.view.settings().get("syntax")
 			self.view.settings().set("old_syntax", syntax_file)
 		plist = plistlib.readPlistFromBytes(sublime.load_resource(syntax_file).encode("UTF-8"))
+		plist["name"] = plist["name"] + " Injected"
+		plist["fileTypes"] = []
 		settings = sublime.load_settings("LanguageInjector.sublime-settings")
-		patterns = settings.get("patterns")
+		patterns = settings.get("patterns", {})
 		for reg in patterns.keys():
 			p = {"match": reg}
 			valid = True
@@ -60,17 +64,28 @@ class LanguageInjectorUpdateCommand(sublime_plugin.TextCommand):
 				plist["patterns"].append(p)
 		if not os.path.exists(get_full_path(xml_location)):
 			os.mkdir(get_full_path(xml_location))
-		self.xml_pos = get_xml_path(self.view.id())
+		self.xml_pos = get_xml_path(self.xml_id)
+		self.last_syntax = self.xml_pos
 		with open(get_full_path(self.xml_pos), "wb") as f:
 			plistlib.writePlist(plist, f)
 		self.view.set_syntax_file(self.xml_pos)
-		self.view.settings().add_on_change("syntax", self.syntax_change)
+		self.view.settings().add_on_change("language_injector_syntax_listener", self.syntax_change)
 
 	def syntax_change(self):
-		if self.view.settings().get("syntax") != self.xml_pos:
-			if self.view.settings().has("old_syntax"):
-				self.view.settings().erase("old_syntax")
-			self.override_syntax()
+		syntax = self.view.settings().get("syntax")
+		if syntax != self.last_syntax and syntax != self.view.settings().get("old_syntax"):
+			self.last_syntax = syntax
+			self.view.settings().set("old_syntax", syntax)
+			self.view.run_command("language_injector_update", {"action": "update"})
 
 	def run(self, edit, **args):
-		self.override_syntax()
+		self.view.settings().clear_on_change("language_injector_syntax_listener")
+		if self.xml_pos != "" and os.path.exists(get_full_path(self.xml_pos)):
+			os.remove(get_full_path(self.xml_pos))
+		if args["action"] == "update":
+			self.xml_id = get_new_id()
+			self.override_syntax()
+		elif args["action"] == "destroy":
+			if self.view.settings().has("old_syntax"):
+				self.view.set_syntax_file(self.view.settings().get("old_syntax"))
+				self.view.settings().erase("old_syntax")

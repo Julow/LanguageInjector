@@ -29,6 +29,7 @@ class LanguageInjectorUpdateCommand(sublime_plugin.TextCommand):
 	xml_id = "0"
 	xml_pos = ""
 	last_syntax = ""
+	settings = None
 
 	def override_syntax(self):
 		if self.view.settings().has("old_syntax"):
@@ -38,9 +39,8 @@ class LanguageInjectorUpdateCommand(sublime_plugin.TextCommand):
 			self.view.settings().set("old_syntax", syntax_file)
 		plist = plistlib.readPlistFromBytes(sublime.load_resource(syntax_file).encode("UTF-8"))
 		plist["name"] = plist["name"] + " Injected"
-		plist["fileTypes"] = []
-		settings = sublime.load_settings("LanguageInjector.sublime-settings")
-		patterns = settings.get("patterns", {})
+		plist["fileTypes"] = [".languageinjector"]
+		patterns = self.settings.get("patterns", {})
 		for reg in patterns.keys():
 			p = {"match": reg}
 			valid = True
@@ -78,7 +78,13 @@ class LanguageInjectorUpdateCommand(sublime_plugin.TextCommand):
 			self.view.settings().set("old_syntax", syntax)
 			self.view.run_command("language_injector_update", {"action": "update"})
 
+	def settings_change(self):
+		self.view.run_command("language_injector_update", {"action": "update"})
+
 	def run(self, edit, **args):
+		if self.settings == None:
+			self.settings = sublime.load_settings("LanguageInjector.sublime-settings")
+			self.settings.add_on_change("listener", self.settings_change)
 		self.view.settings().clear_on_change("language_injector_syntax_listener")
 		if self.xml_pos != "" and os.path.exists(get_full_path(self.xml_pos)):
 			os.remove(get_full_path(self.xml_pos))

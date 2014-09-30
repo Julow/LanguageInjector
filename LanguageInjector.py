@@ -1,4 +1,4 @@
-import sublime, sublime_plugin, os, plistlib
+import sublime, sublime_plugin, os, plistlib, random
 
 global_id = 0
 
@@ -7,10 +7,10 @@ xml_location = "Packages/julooLanguageInjectorCache/"
 def get_new_id():
 	global global_id
 	global_id = global_id + 1
-	return global_id
+	return str(global_id) + "".join(random.choice('abcdefghijklmnopqrstuvwxyz0123456789') for i in range(7))
 
 def get_xml_path(id):
-	return xml_location + str(id) +".tmLanguage"
+	return xml_location + id +".tmLanguage"
 
 def get_full_path(p):
 	return os.path.join(sublime.packages_path(), os.path.normpath(p[9:]))
@@ -26,7 +26,7 @@ class LanguageInjectorListener(sublime_plugin.EventListener):
 
 class LanguageInjectorUpdateCommand(sublime_plugin.TextCommand):
 
-	xml_id = 0
+	xml_id = "0"
 	xml_pos = ""
 	last_syntax = ""
 

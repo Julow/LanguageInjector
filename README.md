@@ -12,7 +12,9 @@ _See below for usage_
 
 ### Installation
 
-_Not available on Package Control yet_
+[Using Package Control.](https://sublime.wbond.net/packages/LanguageInjector)
+
+OR manually:
 
 `git clone` this repo in `%Sublime text location%/Packages/LanguageInjector/`
 
